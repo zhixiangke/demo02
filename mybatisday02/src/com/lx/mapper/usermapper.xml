@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lx.mapper.UserMapper">
+	<select id="queryUserById" parameterType="queryvo"
+		resultType="user">
+		<!-- #{user.id} 先获取 queryvo 中的属性 user 之后获取user下面的id -->
+		select * from user where id = #{user.id}
+	</select>
+
+	<!-- 根据性别和名字查询用户 如果是 简单的参数类型 ${value} 比如 string,integer 如果是 bean的参数类型 ${属性} 
+		if sql 的动态标签 -->
+	<select id="queryUserBySexAndName1" parameterType="user"
+		resultType="user">
+		select * from user where 1 = 1
+		<!-- 第1种情况 2个参数都有 select * from user where sex = #{sex} and username like 
+			'%${username}%'; 第2种情况 第一个参数有第二个参数没有: select * from user where 1 = 1 and 
+			sex = #{sex}; 第3种情况 第个参数没有第二个参数有: select * from user where username like 
+			'%${username}%'; -->
+		<!-- 通过动态sql 拼接 -->
+		<if test="sex != null and sex != ''">
+			and sex = #{sex}
+		</if>
+		<if test="username != null and username != ''">
+			and username like '%${username}%';
+		</if>
+	</select>
+	<!-- where标签 1 ,添加 where 判断条件 2. 处理 1 = 1 and 这种代码 -->
+	<select id="queryUserBySexAndName" parameterType="user"
+		resultType="user">
+		select <include refid="userFiled"/> from user
+		<where>
+			<if test="sex != null and sex != ''">
+				sex = #{sex}
+			</if>
+			<if test="username != null and username != ''">
+				and username like '%${username}%';
+			</if>
+		</where>
+	</select>
+
+	<!-- sql 片段 可以重复的使用sql 语句
+	      把重复的sql 提取成了 一个变量 
+	 -->
+	<sql id="userFiled">id,username,sex,address</sql>
+
+
+<!-- foreach 的使用 
+    sql 拼接:   select * from user where id in(1,2,10);
+ -->
+    <select id="queryUserByIds" parameterType="listvo" resultType="user">
+        select * from user 
+        <where>
+           <!-- 
+           collection 集合  
+           open         开口
+           close        闭口
+           separator   参数之间的 符号
+            -->
+           <foreach collection="ids" open="id in (" close=")" separator="," item="v">
+                  #{v}
+           </foreach>
+        </where>
+    </select>
+</mapper>
+

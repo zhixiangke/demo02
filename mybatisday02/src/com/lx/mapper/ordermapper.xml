@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lx.mapper.OrderMapper">
+
+	<!-- resultmap 映射的类型 id 映射的id -->
+	<resultMap type="order" id="orderMap">
+		<!-- 表中的主键 property 对象的属性 column 表的字段 -->
+		<id property="id" column="id" />
+		<!-- 字段一一映射 -->
+		<result property="userId" column="user_Id" />
+		<result property="number" column="number" />
+		<result property="createtime" column="createtime" />
+		<result property="note" column="note" />
+	</resultMap>
+
+	<select id="queryOrderById" parameterType="int"
+		resultMap="orderMap">
+		select * from orders where id = #{id}
+	</select>
+
+	<!-- 一对一操作 一个订单一个 用户 
+	<select id="queryOrderUser" resultType="orderUser"> 
+		select * from orders o,user u where o.user_id = u.id; 
+    </select>
+     -->
+     
+     <!-- 
+         resultmap 中的配置: 
+            1. 先配置 order 的属性 和 表中 orders的字段对应着 
+            2. 配置order的 bean 和 表中 user表的字段对应
+      -->
+	<resultMap type="order" id="orderUserMap">
+		<id property="id" column="id" />
+		<result property="userId" column="user_id" />
+		<result property="note" column="note" />
+		<result property="number" column="number" />
+		<result property="createtime" column="createtime" />
+
+		<!-- 对象的配置 association 对象的配置 property 属性 javaType 类型 -->
+		<association property="user" javaType="user">
+			<id property="id" column="id" />
+			<result property="username" column="username" />
+			<result property="sex" column="sex" />
+			<result property="address" column="address" />
+		</association>
+
+	</resultMap>
+	<select id="queryOrderUser" resultMap="orderUserMap">
+		select * from orders o,user u where o.user_id = u.id;
+	</select>
+	
+	<!-- 返回结果映射 -->
+	<resultMap type="user" id="userOrdersMap">
+	       <!-- id是主键  一般是一个
+	            user 对象 和 数据库中user 表的映射
+	       -->  
+	        <id property="id" column="uid"/>
+	        <result property="username" column="username"/>
+	        <result property="sex" column="sex"/>
+	        <result property="address" column="address"/>
+	        <!-- user 中有多个order
+	             property 属性  
+	             javaType   java的类型   list
+	             ofType     list中对用的属性
+	         -->
+	        <collection property="orders" javaType="list" ofType="order">
+	              <!-- order 表和 order 对象的映射 -->
+	              <id property="id" column="oid"/>
+	              <result property="userId" column="user_id"/>
+	              <result property="number" column="number"/>
+	              <result property="createtime" column="createtime"/>
+	              <result property="note" column="note"/>
+	        </collection>
+	</resultMap>
+	
+	<!-- 一对多的查询  一个用户多个订单的操作 -->
+	<select id="queryUserOrder" resultMap="userOrdersMap">
+		select * from orders o,user u where o.user_id = u.uid;
+	</select>
+
+</mapper>
+
